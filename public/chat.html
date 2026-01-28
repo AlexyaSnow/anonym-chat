@@ -12,9 +12,7 @@
     --bg: 2, 6, 23;
     --bg-alt: 15, 23, 42;
     --text: 229, 231, 235;
-    --text-muted: 156, 163, 175;
     --border: 255, 255, 255, 0.08;
-    --border-light: 255, 255, 255, 0.04;
   }
 
   body {
@@ -31,15 +29,11 @@
     padding: 12px 16px;
     border-bottom: 1px solid rgba(var(--border));
     background: rgba(var(--bg-alt), 0.5);
-    backdrop-filter: blur(10px);
     display: flex;
-    gap: 12px;
+    gap: 16px;
     align-items: center;
     justify-content: space-between;
   }
-
-  .header-left { display: flex; gap: 12px; align-items: center; }
-  .header-right { display: flex; gap: 8px; align-items: center; }
 
   .brand {
     font-weight: 800;
@@ -54,21 +48,7 @@
     border-radius: 999px;
     background: rgba(var(--border));
     font-size: 12px;
-    border: 1px solid rgba(var(--border-light));
   }
-
-  .topic-bar {
-    padding: 10px 16px;
-    border-bottom: 1px solid rgba(var(--border-light));
-    background: linear-gradient(90deg, rgba(var(--primary), 0.05), transparent);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .topic-icon { font-size: 14px; opacity: 0.7; }
-  #topicText { flex: 1; font-size: 13px; opacity: 0.9; }
-  #editTopicBtn { padding: 4px 8px; font-size: 11px; cursor: pointer; }
 
   .main-container {
     display: flex;
@@ -86,9 +66,6 @@
   }
 
   .msg-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
     animation: slideIn 0.2s ease-out;
   }
 
@@ -119,67 +96,6 @@
 
   .text { line-height: 1.4; }
 
-  .reactions-container {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-
-  .reaction {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(var(--bg-alt), 0.8);
-    border: 1px solid rgba(var(--border));
-    padding: 4px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-    position: relative;
-  }
-
-  .reaction:hover {
-    background: rgba(var(--primary), 0.2);
-    border-color: rgba(var(--primary), 0.5);
-  }
-
-  .reaction-count {
-    font-size: 11px;
-    opacity: 0.7;
-  }
-
-  .reaction-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(var(--bg), 0.95);
-    border: 1px solid rgba(var(--border));
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 11px;
-    white-space: nowrap;
-    margin-bottom: 4px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-    z-index: 100;
-  }
-
-  .reaction:hover .reaction-tooltip {
-    opacity: 1;
-  }
-
-  .ghost-message {
-    padding: 8px 12px;
-    border-radius: 12px;
-    background: rgba(var(--border), 0.3);
-    opacity: 0.6;
-    max-width: 70%;
-  }
-
   .system-message {
     padding: 8px 12px;
     border-radius: 12px;
@@ -192,7 +108,7 @@
   }
 
   .users-sidebar {
-    width: 220px;
+    width: 240px;
     border-left: 1px solid rgba(var(--border));
     background: rgba(var(--bg-alt), 0.3);
     display: flex;
@@ -205,7 +121,7 @@
     border-bottom: 1px solid rgba(var(--border));
     font-size: 12px;
     font-weight: 700;
-    color: rgb(var(--text-muted));
+    color: rgb(var(--text));
   }
 
   .users-list {
@@ -236,55 +152,9 @@
     margin-right: 6px;
   }
 
-  footer {
-    padding: 12px 16px;
-    border-top: 1px solid rgba(var(--border));
-    background: rgba(var(--bg-alt), 0.5);
-    display: flex;
-    gap: 8px;
-  }
-
-  input, button {
-    border: none;
-    outline: none;
-    border-radius: 8px;
-    padding: 10px 12px;
-    background: rgba(var(--border));
-    color: rgb(var(--text));
-    font-size: 14px;
-  }
-
-  input {
-    flex: 1;
-    border: 1px solid rgba(var(--border-light));
-  }
-
-  input:focus {
-    background: rgba(var(--bg-alt), 0.8);
-    border-color: rgba(var(--primary), 0.5);
-  }
-
-  button {
-    background: rgb(var(--primary));
-    color: #0b1220;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(var(--primary), 0.3);
-  }
-
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
   #sharePanel {
     background: rgba(var(--border));
-    border: 1px solid rgba(var(--border-light));
+    border: 1px solid rgba(var(--border));
     border-radius: 10px;
     padding: 12px;
     margin: 12px;
@@ -310,54 +180,65 @@
   .copyBtn {
     padding: 6px 12px;
     font-size: 12px;
+    background: rgb(var(--primary));
+    color: #0b1220;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
   }
 
-  #topicModal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
+  .copyBtn:hover {
+    opacity: 0.8;
   }
 
-  #topicModal.show { display: flex; }
-
-  .modal-content {
-    background: rgb(var(--bg-alt));
-    border: 1px solid rgba(var(--border));
-    border-radius: 12px;
-    padding: 20px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  }
-
-  .modal-content h3 {
-    margin: 0 0 12px 0;
-    font-size: 16px;
-  }
-
-  .modal-content input {
-    width: 100%;
-    margin: 8px 0;
-  }
-
-  .modal-buttons {
+  footer {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(var(--border));
+    background: rgba(var(--bg-alt), 0.5);
     display: flex;
     gap: 8px;
-    justify-content: flex-end;
-    margin-top: 12px;
   }
 
-  .modal-buttons button {
-    flex: 1;
-    padding: 10px;
+  input, button {
+    border: none;
+    outline: none;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: rgba(var(--border));
+    color: rgb(var(--text));
+    font-size: 14px;
   }
+
+  input {
+    flex: 1;
+    border: 1px solid rgba(var(--border));
+  }
+
+  input:focus {
+    background: rgba(var(--bg-alt), 0.8);
+    border-color: rgba(var(--primary), 0.5);
+  }
+
+  button {
+    background: rgb(var(--primary));
+    color: #0b1220;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(var(--primary), 0.3);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  canvas { border-radius: 10px; }
 
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -373,33 +254,12 @@
 <body>
 
 <header>
-  <div class="header-left">
+  <div style="display:flex;gap:16px;align-items:center">
     <div class="brand">Anonym</div>
     <div class="pill">Salle: <b>Tiktok</b></div>
     <div class="pill">Users: <b id="userCount">0</b></div>
   </div>
-  <div class="header-right">
-    <div class="pill">TTL: <b id="ttlLabel">1h</b></div>
-    <input id="ttl" value="3600" style="width:70px;margin:0" type="number" />
-  </div>
 </header>
-
-<div class="topic-bar">
-  <span class="topic-icon">📌</span>
-  <div id="topicText">Welcome to Anonym - Salle Tiktok 🎭</div>
-  <button id="editTopicBtn">Éditer</button>
-</div>
-
-<div id="topicModal">
-  <div class="modal-content">
-    <h3>Modifier le sujet</h3>
-    <input id="topicInput" type="text" placeholder="Nouveau sujet..." maxlength="200" />
-    <div class="modal-buttons">
-      <button id="cancelTopicBtn">Annuler</button>
-      <button id="saveTopicBtn">Sauvegarder</button>
-    </div>
-  </div>
-</div>
 
 <div id="sharePanel">
   <div id="qrContainer" style="text-align:center">
@@ -431,37 +291,29 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
   const ROOM_NAME = "Tiktok";
-  const APP_NAME = "Anonym";
-  const ROOM_SECRET = "anonym::tiktok::roomkey::v1";
 
   const chat = document.getElementById("chat");
   const userCount = document.getElementById("userCount");
   const usersList = document.getElementById("usersList");
-  const ttlInput = document.getElementById("ttl");
-  const ttlLabel = document.getElementById("ttlLabel");
   const sendBtn = document.getElementById("send");
   const msgInput = document.getElementById("msg");
   const copyBtn = document.getElementById("copyBtn");
   const shareLink = document.getElementById("shareLink");
-  const topicText = document.getElementById("topicText");
-  const editTopicBtn = document.getElementById("editTopicBtn");
-  const topicModal = document.getElementById("topicModal");
-  const topicInput = document.getElementById("topicInput");
-  const saveTopicBtn = document.getElementById("saveTopicBtn");
-  const cancelTopicBtn = document.getElementById("cancelTopicBtn");
 
   const username = "user-" + Math.random().toString(36).slice(2, 8);
   let ws = null;
-  let cryptoKey = null;
   let reconnectAttempts = 0;
   const MAX_RECONNECT = 5;
   const RECONNECT_DELAY = 2000;
 
-  const messages = new Map();
-  const userReactions = new Map();
-
   function getBaseURL() {
     return `${location.protocol}//${location.host}`;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
   }
 
   function playBeep() {
@@ -479,75 +331,9 @@
     } catch(e) {}
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-  }
-
-  function formatTTL(seconds) {
-    if (seconds >= 3600) return Math.floor(seconds / 3600) + "h";
-    if (seconds >= 60) return Math.floor(seconds / 60) + "m";
-    return seconds + "s";
-  }
-
-  ttlInput.addEventListener("input", () => {
-    const v = parseInt(ttlInput.value, 10);
-    ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? formatTTL(v) : "1h";
-  });
-
-  editTopicBtn.addEventListener("click", () => {
-    topicInput.value = topicText.textContent;
-    topicModal.classList.add("show");
-    topicInput.focus();
-  });
-
-  cancelTopicBtn.addEventListener("click", () => {
-    topicModal.classList.remove("show");
-  });
-
-  saveTopicBtn.addEventListener("click", () => {
-    const newTopic = topicInput.value.trim();
-    if (newTopic && ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "topic_change", topic: newTopic }));
-      topicModal.classList.remove("show");
-    }
-  });
-
-  topicInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") saveTopicBtn.click();
-    if (e.key === "Escape") cancelTopicBtn.click();
-  });
-
-  async function deriveKey(pass) {
-    const enc = new TextEncoder();
-    const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
-    return crypto.subtle.deriveKey(
-      { name: "PBKDF2", salt: enc.encode(APP_NAME), iterations: 100000, hash: "SHA-256" },
-      base,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt", "decrypt"]
-    );
-  }
-
-  async function encryptObj(obj) {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const bytes = new TextEncoder().encode(JSON.stringify(obj));
-    const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, bytes);
-    return { iv: [...iv], data: [...new Uint8Array(cipher)] };
-  }
-
-  async function decryptObj(payload) {
-    const iv = new Uint8Array(payload.iv);
-    const data = new Uint8Array(payload.data);
-    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, data);
-    return JSON.parse(new TextDecoder().decode(plain));
-  }
-
   function connectWS() {
     if (reconnectAttempts >= MAX_RECONNECT) {
-      addSystemMessage("❌ Impossible de se connecter.");
+      addSystemMessage("Impossible de se connecter.");
       return;
     }
 
@@ -556,11 +342,11 @@
 
     ws.onopen = () => {
       reconnectAttempts = 0;
-      addSystemMessage("✅ Connecté à la salle.");
+      addSystemMessage("Connecté à la salle");
     };
 
     ws.onerror = () => {
-      addSystemMessage("⚠️ Erreur de connexion");
+      addSystemMessage("Erreur de connexion");
     };
 
     ws.onclose = () => {
@@ -568,61 +354,39 @@
       setTimeout(connectWS, RECONNECT_DELAY);
     };
 
-    ws.onmessage = async (e) => {
+    ws.onmessage = (e) => {
       let pkt;
       try {
         pkt = JSON.parse(e.data);
       } catch {
-        console.error("JSON parse error:", e.data);
         return;
       }
 
       if (pkt.type === "user_list") {
-        console.log("user_list:", pkt.users);
         updateUsersList(pkt.users);
-        userCount.textContent = pkt.users.length;
-        return;
-      }
-
-      if (pkt.type === "topic") {
-        topicText.textContent = pkt.topic;
+        userCount.textContent = pkt.count;
         return;
       }
 
       if (pkt.type === "user_event") {
-        console.log("user_event:", pkt);
-        addSystemMessage(`${pkt.action === "join" ? "➕" : "➖"} ${pkt.username} ${pkt.action === "join" ? "a rejoint" : "a quitté"}`);
-        return;
-      }
-
-      if (pkt.type === "reaction") {
-        updateReactionDisplay(pkt.messageId, pkt.reactions);
+        const icon = pkt.action === "join" ? "➕" : "➖";
+        addSystemMessage(`${icon} ${pkt.username} ${pkt.action === "join" ? "a rejoint" : "a quitté"}`);
         return;
       }
 
       if (pkt.type === "message") {
-        console.log("message:", pkt);
-        if (!cryptoKey) return;
-        try {
-          const data = await decryptObj(pkt.payload);
-          addMessage({
-            messageId: pkt.messageId,
-            from: data.from,
-            text: data.text,
-            mine: data.from === username,
-            timestamp: pkt.timestamp,
-            ttl: pkt.ttl
-          });
-        } catch (err) {
-          console.error("Decrypt error:", err);
-        }
+        addMessage({
+          from: pkt.from,
+          text: pkt.text,
+          timestamp: pkt.timestamp,
+          mine: pkt.from === username
+        });
         return;
       }
     };
   }
 
   function updateUsersList(users) {
-    console.log("updateUsersList:", users);
     usersList.innerHTML = users.map(u => `
       <div class="user-item">
         <span class="user-status"></span>${escapeHtml(u)}
@@ -639,112 +403,32 @@
     playBeep();
   }
 
-  function addMessage({ messageId, from, text, mine, timestamp, ttl }) {
+  function addMessage({ from, text, timestamp, mine }) {
     const wrapper = document.createElement("div");
     wrapper.className = "msg-wrapper";
-    wrapper.id = `msg-${messageId}`;
 
     const msgDiv = document.createElement("div");
     msgDiv.className = "msg" + (mine ? " me" : "");
     msgDiv.innerHTML = `
       <div class="meta"><b>${escapeHtml(from)}</b> · ${timestamp}</div>
       <div class="text">${escapeHtml(text)}</div>
-      <div class="reactions-container">
-        <div class="reaction" onclick="addReaction('${messageId}', '👍')">
-          👍 <span class="reaction-count">0</span>
-          <div class="reaction-tooltip"></div>
-        </div>
-        <div class="reaction" onclick="addReaction('${messageId}', '👎')">
-          👎 <span class="reaction-count">0</span>
-          <div class="reaction-tooltip"></div>
-        </div>
-        <div class="reaction" onclick="addReaction('${messageId}', '😂')">
-          😂 <span class="reaction-count">0</span>
-          <div class="reaction-tooltip"></div>
-        </div>
-      </div>
     `;
 
     wrapper.appendChild(msgDiv);
-    messages.set(messageId, { element: wrapper, from, timestamp, ttl });
     chat.appendChild(wrapper);
     chat.scrollTop = chat.scrollHeight;
     playBeep();
-
-    setTimeout(() => {
-      showGhostMessage(messageId, from, timestamp);
-    }, ttl * 1000);
   }
-
-  function showGhostMessage(messageId, from, timestamp) {
-    const wrapper = document.getElementById(`msg-${messageId}`);
-    if (!wrapper) return;
-
-    const ghostDiv = document.createElement("div");
-    ghostDiv.className = "ghost-message";
-    
-    let reactionsHtml = "";
-    if (userReactions.has(messageId)) {
-      const reactions = userReactions.get(messageId);
-      Object.entries(reactions).forEach(([emoji, users]) => {
-        if (users.length > 0) {
-          reactionsHtml += `<div class="reaction" style="cursor:default">
-            ${emoji} <span class="reaction-count">${users.length}</span>
-            <div class="reaction-tooltip">${users.join(', ')}</div>
-          </div>`;
-        }
-      });
-    }
-
-    ghostDiv.innerHTML = `
-      <div class="meta"><b>${escapeHtml(from)}</b> · ${timestamp}</div>
-      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${reactionsHtml}</div>
-    `;
-
-    wrapper.innerHTML = "";
-    wrapper.appendChild(ghostDiv);
-  }
-
-  function updateReactionDisplay(messageId, reactions) {
-    userReactions.set(messageId, reactions);
-    const wrapper = document.getElementById(`msg-${messageId}`);
-    if (!wrapper) return;
-
-    const reactionDivs = wrapper.querySelectorAll(".reaction");
-    reactionDivs.forEach(div => {
-      const emoji = div.textContent.trim().charAt(0);
-      const users = reactions[emoji] || [];
-      div.innerHTML = `
-        ${emoji} <span class="reaction-count">${users.length}</span>
-        <div class="reaction-tooltip">${users.join(', ')}</div>
-      `;
-    });
-  }
-
-  window.addReaction = function(messageId, emoji) {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({
-      type: "reaction",
-      messageId: messageId,
-      emoji: emoji,
-      action: "add"
-    }));
-  };
 
   async function send() {
-    if (!cryptoKey) return;
     const text = msgInput.value.trim();
-    if (!text) return;
+    if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
 
-    const ttl = Math.max(1, parseInt(ttlInput.value, 10) || 3600);
-    const payload = await encryptObj({ from: username, text });
-
-    try {
-      ws.send(JSON.stringify({ room: ROOM_NAME, payload, ttl }));
-      msgInput.value = "";
-    } catch (err) {
-      addSystemMessage("❌ Erreur d'envoi");
-    }
+    ws.send(JSON.stringify({
+      type: "chat",
+      text: text
+    }));
+    msgInput.value = "";
   }
 
   sendBtn.addEventListener("click", send);
@@ -755,17 +439,15 @@
   copyBtn.addEventListener("click", () => {
     const url = `${getBaseURL()}/chat.html`;
     navigator.clipboard.writeText(url).then(() => {
-      copyBtn.textContent = "✓ Copié !";
+      copyBtn.textContent = "Copié !";
       setTimeout(() => copyBtn.textContent = "Copier", 2000);
     });
   });
 
-  async function boot() {
+  function boot() {
     const url = `${getBaseURL()}/chat.html`;
     shareLink.textContent = url;
     QRCode.toCanvas(document.getElementById("qr"), url, { width: 160 });
-
-    cryptoKey = await deriveKey(ROOM_SECRET);
     sendBtn.disabled = false;
     connectWS();
   }
