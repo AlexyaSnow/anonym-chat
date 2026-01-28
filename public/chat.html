@@ -4,32 +4,232 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Anonym — Tiktok</title>
-<style>
-  body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,Segoe UI,Arial;display:flex;flex-direction:column;height:100vh}
-  header{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center;justify-content:space-between}
-  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-size:12px}
-  .status{font-size:11px;padding:4px 8px;border-radius:6px;display:inline-block}
-  .status.online{background:rgba(34,197,94,.2);color:#86efac}
-  .status.offline{background:rgba(239,68,68,.2);color:#fca5a5}
-  .status.connecting{background:rgba(59,130,246,.2);color:#93c5fd}
-  #chat{flex:1;overflow:auto;padding:12px}
-  .msg{margin:0 0 8px 0;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06);max-width:780px}
-  .me{outline:1px solid rgba(56,189,248,.35)}
-  .meta{opacity:.75;font-size:12px;margin-bottom:4px}
-  footer{padding:10px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px}
-  input,button{border:none;outline:none;border-radius:10px;padding:10px}
-  input{flex:1;background:rgba(255,255,255,.06);color:#e5e7eb}
-  button{background:#38bdf8;color:#0b1220;font-weight:700;cursor:pointer}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  canvas{background:#fff;border-radius:12px}
+<style id="themeStyle">
+  :root {
+    --primary: 56, 189, 248;
+    --bg: 2, 6, 23;
+    --text: 229, 231, 235;
+    --border: 255, 255, 255, 0.08;
+    --msg-bg: 255, 255, 255, 0.06;
+  }
   
-  #sharePanel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;margin:10px 12px;display:flex;gap:12px;align-items:flex-start}
-  #sharePanel.hidden{display:none}
-  #qrContainer{flex-shrink:0}
-  #shareInfo{flex:1}
-  .shareLink{background:rgba(255,255,255,.08);padding:8px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;margin:8px 0}
-  .copyBtn{padding:6px 12px;font-size:12px;background:#38bdf8;color:#0b1220;border:none;border-radius:6px;cursor:pointer}
-  .copyBtn:hover{background:#22d3ee}
+  body {
+    margin: 0;
+    background: rgb(var(--bg));
+    color: rgb(var(--text));
+    font-family: system-ui, Segoe UI, Arial;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  header {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(var(--border));
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(var(--border));
+    font-size: 12px;
+  }
+
+  .status {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+
+  .status.online { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+  .status.offline { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+  .status.connecting { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+
+  #chat {
+    flex: 1;
+    overflow: auto;
+    padding: 12px;
+  }
+
+  .msg-wrapper {
+    margin: 0 0 8px 0;
+  }
+
+  .msg {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(var(--msg-bg));
+    max-width: 780px;
+    position: relative;
+  }
+
+  .msg.me { outline: 1px solid rgba(56, 189, 248, 0.35); }
+
+  .meta {
+    opacity: 0.75;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .text {
+    word-wrap: break-word;
+  }
+
+  .reactions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(var(--border));
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+
+  .reaction:hover {
+    background: rgba(56, 189, 248, 0.3);
+  }
+
+  .reaction.active {
+    background: rgba(56, 189, 248, 0.5);
+  }
+
+  .reaction-count {
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  .ghost-message {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(var(--msg-bg));
+    opacity: 0.6;
+    max-width: 780px;
+  }
+
+  .ghost-message .meta {
+    opacity: 0.5;
+    font-size: 11px;
+  }
+
+  .system-message {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #93c5fd;
+    font-size: 13px;
+    max-width: 780px;
+  }
+
+  .typing-indicator {
+    padding: 8px 10px;
+    font-size: 12px;
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  footer {
+    padding: 10px;
+    border-top: 1px solid rgba(var(--border));
+    display: flex;
+    gap: 8px;
+  }
+
+  input, button {
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    padding: 10px;
+    background: rgba(var(--msg-bg));
+    color: rgb(var(--text));
+  }
+
+  input {
+    flex: 1;
+  }
+
+  button {
+    background: rgb(var(--primary));
+    color: #0b1220;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  button:hover { opacity: 0.8; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  #sharePanel {
+    background: rgba(var(--msg-bg));
+    border: 1px solid rgba(var(--border));
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  #qrContainer { flex-shrink: 0; }
+  #shareInfo { flex: 1; }
+
+  .shareLink {
+    background: rgba(var(--border));
+    padding: 8px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 12px;
+    word-break: break-all;
+    margin: 8px 0;
+  }
+
+  .copyBtn {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: rgb(var(--primary));
+    color: #0b1220;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  #settingsPanel {
+    background: rgba(var(--msg-bg));
+    border: 1px solid rgba(var(--border));
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px 12px;
+  }
+
+  .color-picker-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 8px 0;
+  }
+
+  .color-input {
+    width: 50px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  canvas { border-radius: 12px; }
 </style>
 </head>
 <body>
@@ -38,17 +238,17 @@
   <div style="display:flex;gap:10px;align-items:center">
     <div style="font-weight:800">Anonym</div>
     <div class="pill">Salle: <b>Tiktok</b></div>
-    <div class="pill">User: <b id="u"></b></div>
+    <div class="pill">Users: <b id="userCount">0</b></div>
     <div class="status online" id="wsStatus">● En ligne</div>
   </div>
 
   <div style="display:flex;gap:8px;align-items:center">
-    <div class="pill">TTL: <b id="ttlLabel">30</b>s</div>
-    <input id="ttl" value="30" style="width:80px" />
+    <div class="pill">TTL: <b id="ttlLabel">1h</b></div>
+    <input id="ttl" value="3600" style="width:80px" type="number" />
+    <button id="settingsBtn" style="padding:6px 12px;font-size:12px">⚙️</button>
   </div>
 </header>
 
-<!-- Panel de partage avec QR code -->
 <div id="sharePanel">
   <div id="qrContainer" style="text-align:center">
     <canvas id="qr" width="180" height="180"></canvas>
@@ -56,11 +256,24 @@
   <div id="shareInfo">
     <div style="font-weight:700;margin-bottom:8px">📱 Partage cette salle</div>
     <div style="opacity:.8;font-size:13px;margin-bottom:8px">
-      Scanne le QR ou copie le lien pour inviter tes amis. Tout le monde rejoint la même salle anonyme.
+      Scanne le QR ou copie le lien. Tout le monde rejoint la même salle anonyme.
     </div>
-    <div class="shareLink" id="shareLink">Chargement...</div>
+    <div class="shareLink" id="shareLink">https://anonym-chat.render.com/chat.html</div>
     <button class="copyBtn" id="copyBtn">Copier le lien</button>
   </div>
+</div>
+
+<div id="settingsPanel" style="display:none">
+  <div style="font-weight:700;margin-bottom:8px">⚙️ Paramètres</div>
+  <label style="display:block;margin:8px 0">
+    <input type="checkbox" id="darkMode" checked /> Mode sombre
+  </label>
+  <div style="font-size:12px;opacity:.8;margin:8px 0">Couleur du thème (RGB):</div>
+  <div class="color-picker-group">
+    <input type="color" id="colorPicker" class="color-input" value="#38bdf8" />
+    <input type="text" id="colorHex" style="flex:1;padding:6px" placeholder="#38bdf8" />
+  </div>
+  <button id="applyTheme" style="width:100%;margin-top:8px">Appliquer</button>
 </div>
 
 <div id="chat"></div>
@@ -72,57 +285,200 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
+  // ======================
+  // CONSTANTS
+  // ======================
   const ROOM_NAME = "Tiktok";
-  const APP_NAME  = "Anonym";
+  const APP_NAME = "Anonym";
   const ROOM_SECRET = "anonym::tiktok::roomkey::v1";
 
-  const username = "user-" + Math.random().toString(36).slice(2, 8);
-  document.getElementById("u").textContent = username;
-
+  // ======================
+  // DOM ELEMENTS
+  // ======================
   const chat = document.getElementById("chat");
+  const userCount = document.getElementById("userCount");
   const wsStatus = document.getElementById("wsStatus");
+  const ttlInput = document.getElementById("ttl");
+  const ttlLabel = document.getElementById("ttlLabel");
+  const sendBtn = document.getElementById("send");
+  const msgInput = document.getElementById("msg");
   const copyBtn = document.getElementById("copyBtn");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsPanel = document.getElementById("settingsPanel");
+  const darkModeToggle = document.getElementById("darkMode");
+  const colorPicker = document.getElementById("colorPicker");
+  const colorHex = document.getElementById("colorHex");
+  const applyThemeBtn = document.getElementById("applyTheme");
   const shareLink = document.getElementById("shareLink");
+  const themeStyle = document.getElementById("themeStyle");
 
+  // ======================
+  // STATE
+  // ======================
+  const username = "user-" + Math.random().toString(36).slice(2, 8);
   let ws = null;
   let cryptoKey = null;
   let reconnectAttempts = 0;
   const MAX_RECONNECT = 5;
   const RECONNECT_DELAY = 2000;
 
-  // Récupère l'URL de manière robuste
+  const messages = new Map(); // messageId -> {element, data}
+  const userReactions = new Map(); // messageId -> {👍: [users], ...}
+  let typingTimeout = null;
+
+  // ======================
+  // UTILITIES
+  // ======================
   function getBaseURL() {
-    const protocol = location.protocol;
-    const host = location.host;
-    return `${protocol}//${host}`;
+    return `${location.protocol}//${location.host}`;
   }
 
-  // Mise à jour du statut WebSocket
+  function playBeep() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.frequency.value = 1000;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.1);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  function formatTTL(seconds) {
+    if (seconds >= 3600) return Math.floor(seconds / 3600) + "h";
+    if (seconds >= 60) return Math.floor(seconds / 60) + "m";
+    return seconds + "s";
+  }
+
   function setWSStatus(status, text) {
     wsStatus.className = "status " + status;
     wsStatus.textContent = "● " + text;
   }
 
-  // Connexion WebSocket avec reconnexion auto
+  // ======================
+  // THEME
+  // ======================
+  function updateTheme(r, g, b) {
+    const hex = "#" + [r, g, b].map(x => {
+      const h = x.toString(16);
+      return h.length === 1 ? "0" + h : h;
+    }).join("");
+    
+    colorPicker.value = hex;
+    colorHex.value = hex;
+    
+    const css = `:root { --primary: ${r}, ${g}, ${b}; }`;
+    themeStyle.textContent = css;
+    localStorage.setItem("theme-color", hex);
+  }
+
+  function loadTheme() {
+    const saved = localStorage.getItem("theme-color") || "#38bdf8";
+    const rgb = parseInt(saved.slice(1), 16);
+    const r = (rgb >> 16) & 255;
+    const g = (rgb >> 8) & 255;
+    const b = rgb & 255;
+    updateTheme(r, g, b);
+  }
+
+  settingsBtn.addEventListener("click", () => {
+    settingsPanel.style.display = settingsPanel.style.display === "none" ? "block" : "none";
+  });
+
+  colorPicker.addEventListener("change", (e) => {
+    const hex = e.target.value;
+    const rgb = parseInt(hex.slice(1), 16);
+    const r = (rgb >> 16) & 255;
+    const g = (rgb >> 8) & 255;
+    const b = rgb & 255;
+    updateTheme(r, g, b);
+  });
+
+  colorHex.addEventListener("change", (e) => {
+    if (e.target.value.match(/^#[0-9a-f]{6}$/i)) {
+      colorPicker.value = e.target.value;
+      colorPicker.dispatchEvent(new Event("change"));
+    }
+  });
+
+  applyThemeBtn.addEventListener("click", () => {
+    settingsPanel.style.display = "none";
+  });
+
+  darkModeToggle.addEventListener("change", (e) => {
+    document.body.style.filter = e.target.checked ? "none" : "invert(1)";
+    localStorage.setItem("dark-mode", e.target.checked);
+  });
+
+  // ======================
+  // TTL INPUT
+  // ======================
+  ttlInput.addEventListener("input", () => {
+    const v = parseInt(ttlInput.value, 10);
+    ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? formatTTL(v) : "1h";
+  });
+
+  // ======================
+  // CRYPTO
+  // ======================
+  async function deriveKey(pass) {
+    const enc = new TextEncoder();
+    const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: enc.encode(APP_NAME), iterations: 100000, hash: "SHA-256" },
+      base,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  async function encryptObj(obj) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const bytes = new TextEncoder().encode(JSON.stringify(obj));
+    const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, bytes);
+    return { iv: [...iv], data: [...new Uint8Array(cipher)] };
+  }
+
+  async function decryptObj(payload) {
+    const iv = new Uint8Array(payload.iv);
+    const data = new Uint8Array(payload.data);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, data);
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  // ======================
+  // WEBSOCKET
+  // ======================
   function connectWS() {
     if (reconnectAttempts >= MAX_RECONNECT) {
       setWSStatus("offline", "Connexion échouée");
-      addMessage({from:"system", text:"❌ Impossible de se connecter. Recharge la page.", ttl:30});
+      addSystemMessage("❌ Impossible de se connecter. Recharge la page.");
       return;
     }
 
-    const wsProto = (location.protocol === "https:") ? "wss" : "ws";
+    const wsProto = location.protocol === "https:" ? "wss" : "ws";
     ws = new WebSocket(`${wsProto}://${location.host}/ws`);
 
     ws.onopen = () => {
       reconnectAttempts = 0;
       setWSStatus("online", "En ligne");
-      addMessage({from:"system", text:"✅ Connecté à la salle.", ttl:3});
+      addSystemMessage("✅ Connecté à la salle.");
     };
 
     ws.onerror = () => {
-      setWSStatus("offline", "Erreur de connexion");
-      addMessage({from:"system", text:"⚠️ Erreur WebSocket", ttl:5});
+      setWSStatus("offline", "Erreur WebSocket");
+      addSystemMessage("⚠️ Erreur de connexion");
     };
 
     ws.onclose = () => {
@@ -132,76 +488,193 @@
     };
 
     ws.onmessage = async (e) => {
-      if(!cryptoKey) return;
       let pkt;
-      try { pkt = JSON.parse(e.data); } catch { return; }
-      if (pkt.room !== ROOM_NAME) return;
-
       try {
-        const data = await decryptObj(pkt.payload);
-        addMessage({from: data.from, text: data.text, mine: (data.from === username), ttl: pkt.ttl || 30});
-      } catch (err) {
-        console.error("Decrypt error:", err);
+        pkt = JSON.parse(e.data);
+      } catch {
+        return;
+      }
+
+      // USER COUNT
+      if (pkt.type === "user_count") {
+        userCount.textContent = pkt.count;
+        return;
+      }
+
+      // USER JOIN/LEAVE
+      if (pkt.type === "user_event") {
+        addSystemMessage(`${pkt.action === "join" ? "➕" : "➖"} ${pkt.username} ${pkt.action === "join" ? "a rejoint" : "a quitté"}`);
+        return;
+      }
+
+      // TYPING INDICATOR
+      if (pkt.type === "typing") {
+        updateTypingIndicator(pkt.users);
+        return;
+      }
+
+      // REACTION
+      if (pkt.type === "reaction") {
+        updateReactionDisplay(pkt.messageId, pkt.reactions);
+        return;
+      }
+
+      // CHAT MESSAGE
+      if (pkt.type === "message" && cryptoKey) {
+        try {
+          const data = await decryptObj(pkt.payload);
+          addMessage({
+            messageId: pkt.messageId,
+            from: data.from,
+            text: data.text,
+            mine: data.from === username,
+            timestamp: pkt.timestamp,
+            ttl: pkt.ttl
+          });
+        } catch (err) {
+          console.error("Decrypt error:", err);
+        }
       }
     };
   }
 
-  function addMessage({from, text, mine=false, ttl=30}) {
-    const wrap = document.createElement("div");
-    wrap.className = "msg" + (mine ? " me" : "");
-    wrap.innerHTML = `
-      <div class="meta"><b>${escapeHtml(from)}</b> · ${new Date().toLocaleTimeString()}</div>
-      <div>${escapeHtml(text)}</div>
-    `;
-    chat.appendChild(wrap);
+  // ======================
+  // MESSAGES & UI
+  // ======================
+  function addSystemMessage(text) {
+    const div = document.createElement("div");
+    div.className = "system-message";
+    div.textContent = text;
+    chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
-    setTimeout(() => wrap.remove(), ttl * 1000);
+    playBeep();
   }
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, c => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[c]));
+  function addMessage({ messageId, from, text, mine, timestamp, ttl }) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "msg-wrapper";
+    wrapper.id = `msg-${messageId}`;
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "msg" + (mine ? " me" : "");
+    msgDiv.innerHTML = `
+      <div class="meta"><b>${escapeHtml(from)}</b> · ${timestamp}</div>
+      <div class="text">${escapeHtml(text)}</div>
+      <div class="reactions">
+        <div class="reaction" onclick="addReaction('${messageId}', '👍')">👍 <span class="reaction-count">0</span></div>
+        <div class="reaction" onclick="addReaction('${messageId}', '👎')">👎 <span class="reaction-count">0</span></div>
+        <div class="reaction" onclick="addReaction('${messageId}', '😂')">😂 <span class="reaction-count">0</span></div>
+      </div>
+    `;
+
+    wrapper.appendChild(msgDiv);
+    messages.set(messageId, { element: wrapper, from, timestamp, ttl });
+
+    chat.appendChild(wrapper);
+    chat.scrollTop = chat.scrollHeight;
+    playBeep();
+
+    // Replace with ghost after TTL
+    setTimeout(() => {
+      showGhostMessage(messageId, from, timestamp);
+    }, ttl * 1000);
   }
 
-  async function deriveKey(pass){
-    const enc = new TextEncoder();
-    const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
-    return crypto.subtle.deriveKey(
-      { name:"PBKDF2", salt: enc.encode(APP_NAME), iterations: 100000, hash:"SHA-256" },
-      base,
-      { name:"AES-GCM", length: 256 },
-      false,
-      ["encrypt","decrypt"]
-    );
+  function showGhostMessage(messageId, from, timestamp) {
+    const wrapper = document.getElementById(`msg-${messageId}`);
+    if (!wrapper) return;
+
+    const ghostDiv = document.createElement("div");
+    ghostDiv.className = "ghost-message";
+    
+    let reactionsHtml = "";
+    if (userReactions.has(messageId)) {
+      const reactions = userReactions.get(messageId);
+      Object.entries(reactions).forEach(([emoji, users]) => {
+        if (users.length > 0) {
+          reactionsHtml += `<div class="reaction">${emoji} <span class="reaction-count">${users.length}</span></div>`;
+        }
+      });
+    }
+
+    ghostDiv.innerHTML = `
+      <div class="meta"><b>${escapeHtml(from)}</b> · ${timestamp}</div>
+      <div class="reactions" style="margin-top:6px">${reactionsHtml}</div>
+    `;
+
+    wrapper.innerHTML = "";
+    wrapper.appendChild(ghostDiv);
   }
 
-  async function encryptObj(obj){
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const bytes = new TextEncoder().encode(JSON.stringify(obj));
-    const cipher = await crypto.subtle.encrypt({name:"AES-GCM", iv}, cryptoKey, bytes);
-    return { iv:[...iv], data:[...new Uint8Array(cipher)] };
+  function updateReactionDisplay(messageId, reactions) {
+    userReactions.set(messageId, reactions);
+    
+    const wrapper = document.getElementById(`msg-${messageId}`);
+    if (!wrapper) return;
+
+    const reactionDivs = wrapper.querySelectorAll(".reaction");
+    reactionDivs.forEach(div => {
+      const emoji = div.textContent.trim().charAt(0);
+      const count = reactions[emoji]?.length || 0;
+      div.innerHTML = `${emoji} <span class="reaction-count">${count}</span>`;
+    });
   }
 
-  async function decryptObj(payload){
-    const iv = new Uint8Array(payload.iv);
-    const data = new Uint8Array(payload.data);
-    const plain = await crypto.subtle.decrypt({name:"AES-GCM", iv}, cryptoKey, data);
-    return JSON.parse(new TextDecoder().decode(plain));
+  function updateTypingIndicator(users) {
+    const existing = document.querySelector(".typing-indicator");
+    if (existing) existing.remove();
+
+    if (users.length > 0) {
+      const div = document.createElement("div");
+      div.className = "typing-indicator";
+      div.textContent = users.slice(0, 2).join(", ") + (users.length > 2 ? "..." : "") + " écri" + (users.length === 1 ? "t" : "vent") + "...";
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
   }
 
-  async function boot(){
-    cryptoKey = await deriveKey(ROOM_SECRET);
-    document.getElementById("send").disabled = false;
-    makeQR();
-    connectWS();
+  window.addReaction = function(messageId, emoji) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({
+      type: "reaction",
+      messageId: messageId,
+      emoji: emoji,
+      action: "add"
+    }));
+  };
+
+  // ======================
+  // SEND MESSAGE
+  // ======================
+  async function send() {
+    if (!cryptoKey) return;
+    const text = msgInput.value.trim();
+    if (!text) return;
+
+    const ttl = Math.max(1, parseInt(ttlInput.value, 10) || 3600);
+    const payload = await encryptObj({ from: username, text });
+
+    try {
+      ws.send(JSON.stringify({ room: ROOM_NAME, payload, ttl }));
+      msgInput.value = "";
+    } catch (err) {
+      addSystemMessage("❌ Erreur d'envoi");
+    }
   }
 
-  function makeQR(){
-    const url = `${getBaseURL()}/chat.html`;
-    shareLink.textContent = url;
-    QRCode.toCanvas(document.getElementById("qr"), url, { width: 180 });
-  }
+  // ======================
+  // TYPING INDICATOR
+  // ======================
+  msgInput.addEventListener("input", () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "typing" }));
+    }
+  });
+
+  sendBtn.addEventListener("click", send);
+  msgInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") send();
+  });
 
   copyBtn.addEventListener("click", () => {
     const url = `${getBaseURL()}/chat.html`;
@@ -211,34 +684,21 @@
     });
   });
 
-  const ttlInput = document.getElementById("ttl");
-  const ttlLabel = document.getElementById("ttlLabel");
-  ttlInput.addEventListener("input", () => {
-    const v = parseInt(ttlInput.value, 10);
-    ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? v : 30;
-  });
+  // ======================
+  // INIT
+  // ======================
+  async function boot() {
+    const url = `${getBaseURL()}/chat.html`;
+    shareLink.textContent = url;
+    QRCode.toCanvas(document.getElementById("qr"), url, { width: 180 });
 
-  async function send(){
-    if(!cryptoKey) return;
-    const input = document.getElementById("msg");
-    const text = input.value.trim();
-    if(!text) return;
+    cryptoKey = await deriveKey(ROOM_SECRET);
+    sendBtn.disabled = false;
+    loadTheme();
+    connectWS();
 
-    const ttl = Math.max(1, parseInt(ttlInput.value, 10) || 30);
-    const payload = await encryptObj({ from: username, text });
-    
-    try {
-      ws.send(JSON.stringify({ room: ROOM_NAME, payload, ttl }));
-      input.value = "";
-    } catch (err) {
-      addMessage({from:"system", text:"❌ Erreur d'envoi", ttl:5});
-    }
+    document.querySelector("header").innerHTML += `<span style="font-size:12px;opacity:.7"> | User: ${username}</span>`;
   }
-
-  document.getElementById("send").addEventListener("click", send);
-  document.getElementById("msg").addEventListener("keydown", (e) => {
-    if(e.key === "Enter") send();
-  });
 
   boot();
 </script>
