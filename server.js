@@ -47,5 +47,5 @@ const PORT = process.env.PORT || 3000;
 const HOST = "0.0.0.0";
 
 server.listen(PORT, HOST, () => {
-  console.log(`✅ Serveur prêt sur le port ${PORT}`);
+  console.log(`Serveur prêt sur le port ${PORT}`);
 });
