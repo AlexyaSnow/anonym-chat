@@ -7,7 +7,6 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server, path: "/ws" });
 
-
 // Sert toujours le bon dossier, peu importe d'où tu lances node
 const PUBLIC_DIR = path.join(__dirname, "public");
 app.use(express.static(PUBLIC_DIR));
@@ -44,6 +43,9 @@ wss.on("connection", (ws) => {
   ws.on("close", () => lastMsg.delete(id));
 });
 
-server.listen(3000, "127.0.0.1", () => {
-  console.log("OK: http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+const HOST = "0.0.0.0";
+
+server.listen(PORT, HOST, () => {
+  console.log(`✅ Serveur prêt sur le port ${PORT}`);
 });
