@@ -191,14 +191,6 @@
     margin: 4px auto;
   }
 
-  .typing-indicator {
-    padding: 8px 12px;
-    font-size: 12px;
-    opacity: 0.6;
-    font-style: italic;
-    color: rgb(var(--text-muted));
-  }
-
   .users-sidebar {
     width: 220px;
     border-left: 1px solid rgba(var(--border));
@@ -320,35 +312,6 @@
     font-size: 12px;
   }
 
-  #settingsPanel {
-    background: rgba(var(--border));
-    border: 1px solid rgba(var(--border-light));
-    border-radius: 10px;
-    padding: 12px;
-    margin: 12px;
-    display: none;
-  }
-
-  .settings-group {
-    margin: 12px 0;
-  }
-
-  .color-picker-group {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-
-  .color-input {
-    width: 50px;
-    height: 40px;
-    border: 1px solid rgba(var(--border));
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  canvas { border-radius: 10px; }
-
   #topicModal {
     display: none;
     position: fixed;
@@ -396,7 +359,6 @@
     padding: 10px;
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
@@ -419,7 +381,6 @@
   <div class="header-right">
     <div class="pill">TTL: <b id="ttlLabel">1h</b></div>
     <input id="ttl" value="3600" style="width:70px;margin:0" type="number" />
-    <button id="settingsBtn" style="padding:6px 10px;font-size:13px">⚙️</button>
   </div>
 </header>
 
@@ -454,22 +415,6 @@
   </div>
 </div>
 
-<div id="settingsPanel">
-  <div style="font-weight:700;margin-bottom:8px;font-size:13px">⚙️ Paramètres</div>
-  <div class="settings-group">
-    <label style="display:block;font-size:12px;margin-bottom:4px">
-      <input type="checkbox" id="darkMode" checked style="margin-right:6px" /> Mode sombre
-    </label>
-  </div>
-  <div class="settings-group">
-    <div style="font-size:12px;opacity:.8;margin-bottom:8px">Couleur</div>
-    <div class="color-picker-group">
-      <input type="color" id="colorPicker" class="color-input" value="#38bdf8" />
-      <input type="text" id="colorHex" placeholder="#38bdf8" />
-    </div>
-  </div>
-</div>
-
 <div class="main-container">
   <div id="chat"></div>
   <div class="users-sidebar">
@@ -489,7 +434,6 @@
   const APP_NAME = "Anonym";
   const ROOM_SECRET = "anonym::tiktok::roomkey::v1";
 
-  // DOM
   const chat = document.getElementById("chat");
   const userCount = document.getElementById("userCount");
   const usersList = document.getElementById("usersList");
@@ -498,11 +442,6 @@
   const sendBtn = document.getElementById("send");
   const msgInput = document.getElementById("msg");
   const copyBtn = document.getElementById("copyBtn");
-  const settingsBtn = document.getElementById("settingsBtn");
-  const settingsPanel = document.getElementById("settingsPanel");
-  const darkModeToggle = document.getElementById("darkMode");
-  const colorPicker = document.getElementById("colorPicker");
-  const colorHex = document.getElementById("colorHex");
   const shareLink = document.getElementById("shareLink");
   const topicText = document.getElementById("topicText");
   const editTopicBtn = document.getElementById("editTopicBtn");
@@ -526,16 +465,18 @@
   }
 
   function playBeep() {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.frequency.value = 1000;
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.1);
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = 1000;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.1);
+    } catch(e) {}
   }
 
   function escapeHtml(s) {
@@ -550,53 +491,11 @@
     return seconds + "s";
   }
 
-  function updateTheme(r, g, b) {
-    const hex = "#" + [r, g, b].map(x => {
-      const h = x.toString(16);
-      return h.length === 1 ? "0" + h : h;
-    }).join("");
-    colorPicker.value = hex;
-    colorHex.value = hex;
-    document.documentElement.style.setProperty("--primary", `${r}, ${g}, ${b}`);
-    localStorage.setItem("theme-color", hex);
-  }
-
-  function loadTheme() {
-    const saved = localStorage.getItem("theme-color") || "#38bdf8";
-    const rgb = parseInt(saved.slice(1), 16);
-    const r = (rgb >> 16) & 255;
-    const g = (rgb >> 8) & 255;
-    const b = rgb & 255;
-    updateTheme(r, g, b);
-  }
-
-  // THEME
-  settingsBtn.addEventListener("click", () => {
-    settingsPanel.style.display = settingsPanel.style.display === "none" ? "block" : "none";
+  ttlInput.addEventListener("input", () => {
+    const v = parseInt(ttlInput.value, 10);
+    ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? formatTTL(v) : "1h";
   });
 
-  colorPicker.addEventListener("change", (e) => {
-    const hex = e.target.value;
-    const rgb = parseInt(hex.slice(1), 16);
-    const r = (rgb >> 16) & 255;
-    const g = (rgb >> 8) & 255;
-    const b = rgb & 255;
-    updateTheme(r, g, b);
-  });
-
-  colorHex.addEventListener("change", (e) => {
-    if (e.target.value.match(/^#[0-9a-f]{6}$/i)) {
-      colorPicker.value = e.target.value;
-      colorPicker.dispatchEvent(new Event("change"));
-    }
-  });
-
-  darkModeToggle.addEventListener("change", (e) => {
-    document.body.style.filter = e.target.checked ? "none" : "invert(1)";
-    localStorage.setItem("dark-mode", e.target.checked);
-  });
-
-  // TOPIC
   editTopicBtn.addEventListener("click", () => {
     topicInput.value = topicText.textContent;
     topicModal.classList.add("show");
@@ -620,13 +519,6 @@
     if (e.key === "Escape") cancelTopicBtn.click();
   });
 
-  // TTL
-  ttlInput.addEventListener("input", () => {
-    const v = parseInt(ttlInput.value, 10);
-    ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? formatTTL(v) : "1h";
-  });
-
-  // CRYPTO
   async function deriveKey(pass) {
     const enc = new TextEncoder();
     const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
@@ -653,7 +545,6 @@
     return JSON.parse(new TextDecoder().decode(plain));
   }
 
-  // WEBSOCKET
   function connectWS() {
     if (reconnectAttempts >= MAX_RECONNECT) {
       addSystemMessage("❌ Impossible de se connecter.");
@@ -682,10 +573,12 @@
       try {
         pkt = JSON.parse(e.data);
       } catch {
+        console.error("JSON parse error:", e.data);
         return;
       }
 
       if (pkt.type === "user_list") {
+        console.log("user_list:", pkt.users);
         updateUsersList(pkt.users);
         userCount.textContent = pkt.users.length;
         return;
@@ -697,12 +590,8 @@
       }
 
       if (pkt.type === "user_event") {
+        console.log("user_event:", pkt);
         addSystemMessage(`${pkt.action === "join" ? "➕" : "➖"} ${pkt.username} ${pkt.action === "join" ? "a rejoint" : "a quitté"}`);
-        return;
-      }
-
-      if (pkt.type === "typing") {
-        updateTypingIndicator(pkt.users);
         return;
       }
 
@@ -711,7 +600,9 @@
         return;
       }
 
-      if (pkt.type === "message" && cryptoKey) {
+      if (pkt.type === "message") {
+        console.log("message:", pkt);
+        if (!cryptoKey) return;
         try {
           const data = await decryptObj(pkt.payload);
           addMessage({
@@ -725,11 +616,13 @@
         } catch (err) {
           console.error("Decrypt error:", err);
         }
+        return;
       }
     };
   }
 
   function updateUsersList(users) {
+    console.log("updateUsersList:", users);
     usersList.innerHTML = users.map(u => `
       <div class="user-item">
         <span class="user-status"></span>${escapeHtml(u)}
@@ -795,9 +688,9 @@
       const reactions = userReactions.get(messageId);
       Object.entries(reactions).forEach(([emoji, users]) => {
         if (users.length > 0) {
-          reactionsHtml += `<div class="reaction" style="cursor:default" onmouseover="this.querySelector('.reaction-tooltip').textContent='${users.join(', ')}'">
+          reactionsHtml += `<div class="reaction" style="cursor:default">
             ${emoji} <span class="reaction-count">${users.length}</span>
-            <div class="reaction-tooltip"></div>
+            <div class="reaction-tooltip">${users.join(', ')}</div>
           </div>`;
         }
       });
@@ -828,18 +721,6 @@
     });
   }
 
-  function updateTypingIndicator(users) {
-    const existing = document.querySelector(".typing-indicator");
-    if (existing) existing.remove();
-    if (users.length > 0) {
-      const div = document.createElement("div");
-      div.className = "typing-indicator";
-      div.textContent = users.slice(0, 2).join(", ") + (users.length > 2 ? "..." : "") + " écri" + (users.length === 1 ? "t" : "vent") + "...";
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
-  }
-
   window.addReaction = function(messageId, emoji) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     ws.send(JSON.stringify({
@@ -866,12 +747,6 @@
     }
   }
 
-  msgInput.addEventListener("input", () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ type: "typing" }));
-    }
-  });
-
   sendBtn.addEventListener("click", send);
   msgInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") send();
@@ -892,7 +767,6 @@
 
     cryptoKey = await deriveKey(ROOM_SECRET);
     sendBtn.disabled = false;
-    loadTheme();
     connectWS();
   }
 
