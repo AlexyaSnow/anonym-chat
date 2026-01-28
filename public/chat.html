@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
@@ -8,6 +8,10 @@
   body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,Segoe UI,Arial;display:flex;flex-direction:column;height:100vh}
   header{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center;justify-content:space-between}
   .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-size:12px}
+  .status{font-size:11px;padding:4px 8px;border-radius:6px;display:inline-block}
+  .status.online{background:rgba(34,197,94,.2);color:#86efac}
+  .status.offline{background:rgba(239,68,68,.2);color:#fca5a5}
+  .status.connecting{background:rgba(59,130,246,.2);color:#93c5fd}
   #chat{flex:1;overflow:auto;padding:12px}
   .msg{margin:0 0 8px 0;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06);max-width:780px}
   .me{outline:1px solid rgba(56,189,248,.35)}
@@ -18,6 +22,14 @@
   button{background:#38bdf8;color:#0b1220;font-weight:700;cursor:pointer}
   button:disabled{opacity:.5;cursor:not-allowed}
   canvas{background:#fff;border-radius:12px}
+  
+  #sharePanel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px;margin:10px 12px;display:flex;gap:12px;align-items:flex-start}
+  #sharePanel.hidden{display:none}
+  #qrContainer{flex-shrink:0}
+  #shareInfo{flex:1}
+  .shareLink{background:rgba(255,255,255,.08);padding:8px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;margin:8px 0}
+  .copyBtn{padding:6px 12px;font-size:12px;background:#38bdf8;color:#0b1220;border:none;border-radius:6px;cursor:pointer}
+  .copyBtn:hover{background:#22d3ee}
 </style>
 </head>
 <body>
@@ -27,20 +39,27 @@
     <div style="font-weight:800">Anonym</div>
     <div class="pill">Salle: <b>Tiktok</b></div>
     <div class="pill">User: <b id="u"></b></div>
+    <div class="status online" id="wsStatus">● En ligne</div>
   </div>
 
   <div style="display:flex;gap:8px;align-items:center">
     <div class="pill">TTL: <b id="ttlLabel">30</b>s</div>
     <input id="ttl" value="30" style="width:80px" />
-    <button id="qrBtn" type="button">QR</button>
   </div>
 </header>
 
-<div style="padding:10px 12px;display:none;gap:10px;align-items:center" id="qrWrap">
-  <canvas id="qr" width="220" height="220"></canvas>
-  <div style="opacity:.8;font-size:13px;line-height:1.35">
-    Scan le QR → entrée directe dans <b>Tiktok</b><br/>
-    (Username aléatoire à chaque visite.)
+<!-- Panel de partage avec QR code -->
+<div id="sharePanel">
+  <div id="qrContainer" style="text-align:center">
+    <canvas id="qr" width="180" height="180"></canvas>
+  </div>
+  <div id="shareInfo">
+    <div style="font-weight:700;margin-bottom:8px">📱 Partage cette salle</div>
+    <div style="opacity:.8;font-size:13px;margin-bottom:8px">
+      Scanne le QR ou copie le lien pour inviter tes amis. Tout le monde rejoint la même salle anonyme.
+    </div>
+    <div class="shareLink" id="shareLink">Chargement...</div>
+    <button class="copyBtn" id="copyBtn">Copier le lien</button>
   </div>
 </div>
 
@@ -61,12 +80,71 @@
   document.getElementById("u").textContent = username;
 
   const chat = document.getElementById("chat");
+  const wsStatus = document.getElementById("wsStatus");
+  const copyBtn = document.getElementById("copyBtn");
+  const shareLink = document.getElementById("shareLink");
 
-  // ✅ WS correct en HTTPS (trycloudflare) + chemin dédié
-  const wsProto = (location.protocol === "https:") ? "wss" : "ws";
-  const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
-
+  let ws = null;
   let cryptoKey = null;
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT = 5;
+  const RECONNECT_DELAY = 2000;
+
+  // Récupère l'URL de manière robuste
+  function getBaseURL() {
+    const protocol = location.protocol;
+    const host = location.host;
+    return `${protocol}//${host}`;
+  }
+
+  // Mise à jour du statut WebSocket
+  function setWSStatus(status, text) {
+    wsStatus.className = "status " + status;
+    wsStatus.textContent = "● " + text;
+  }
+
+  // Connexion WebSocket avec reconnexion auto
+  function connectWS() {
+    if (reconnectAttempts >= MAX_RECONNECT) {
+      setWSStatus("offline", "Connexion échouée");
+      addMessage({from:"system", text:"❌ Impossible de se connecter. Recharge la page.", ttl:30});
+      return;
+    }
+
+    const wsProto = (location.protocol === "https:") ? "wss" : "ws";
+    ws = new WebSocket(`${wsProto}://${location.host}/ws`);
+
+    ws.onopen = () => {
+      reconnectAttempts = 0;
+      setWSStatus("online", "En ligne");
+      addMessage({from:"system", text:"✅ Connecté à la salle.", ttl:3});
+    };
+
+    ws.onerror = () => {
+      setWSStatus("offline", "Erreur de connexion");
+      addMessage({from:"system", text:"⚠️ Erreur WebSocket", ttl:5});
+    };
+
+    ws.onclose = () => {
+      setWSStatus("connecting", "Reconnexion...");
+      reconnectAttempts++;
+      setTimeout(connectWS, RECONNECT_DELAY);
+    };
+
+    ws.onmessage = async (e) => {
+      if(!cryptoKey) return;
+      let pkt;
+      try { pkt = JSON.parse(e.data); } catch { return; }
+      if (pkt.room !== ROOM_NAME) return;
+
+      try {
+        const data = await decryptObj(pkt.payload);
+        addMessage({from: data.from, text: data.text, mine: (data.from === username), ttl: pkt.ttl || 30});
+      } catch (err) {
+        console.error("Decrypt error:", err);
+      }
+    };
+  }
 
   function addMessage({from, text, mine=false, ttl=30}) {
     const wrap = document.createElement("div");
@@ -116,16 +194,21 @@
     cryptoKey = await deriveKey(ROOM_SECRET);
     document.getElementById("send").disabled = false;
     makeQR();
+    connectWS();
   }
 
   function makeQR(){
-    const url = `${location.origin}/chat.html`;
-    QRCode.toCanvas(document.getElementById("qr"), url, { width: 220 });
+    const url = `${getBaseURL()}/chat.html`;
+    shareLink.textContent = url;
+    QRCode.toCanvas(document.getElementById("qr"), url, { width: 180 });
   }
 
-  document.getElementById("qrBtn").addEventListener("click", () => {
-    const wrap = document.getElementById("qrWrap");
-    wrap.style.display = (wrap.style.display === "none" ? "flex" : "none");
+  copyBtn.addEventListener("click", () => {
+    const url = `${getBaseURL()}/chat.html`;
+    navigator.clipboard.writeText(url).then(() => {
+      copyBtn.textContent = "✓ Copié !";
+      setTimeout(() => copyBtn.textContent = "Copier le lien", 2000);
+    });
   });
 
   const ttlInput = document.getElementById("ttl");
@@ -135,22 +218,6 @@
     ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? v : 30;
   });
 
-  ws.onopen = () => addMessage({from:"system", text:"WebSocket OK.", ttl:5});
-  ws.onerror = () => addMessage({from:"system", text:"WebSocket erreur.", ttl:10});
-  ws.onclose = () => addMessage({from:"system", text:"WebSocket fermé.", ttl:10});
-
-  ws.onmessage = async (e) => {
-    if(!cryptoKey) return;
-    let pkt;
-    try { pkt = JSON.parse(e.data); } catch { return; }
-    if (pkt.room !== ROOM_NAME) return;
-
-    try {
-      const data = await decryptObj(pkt.payload);
-      addMessage({from: data.from, text: data.text, mine: (data.from === username), ttl: pkt.ttl || 30});
-    } catch {}
-  };
-
   async function send(){
     if(!cryptoKey) return;
     const input = document.getElementById("msg");
@@ -159,8 +226,13 @@
 
     const ttl = Math.max(1, parseInt(ttlInput.value, 10) || 30);
     const payload = await encryptObj({ from: username, text });
-    ws.send(JSON.stringify({ room: ROOM_NAME, payload, ttl }));
-    input.value = "";
+    
+    try {
+      ws.send(JSON.stringify({ room: ROOM_NAME, payload, ttl }));
+      input.value = "";
+    } catch (err) {
+      addMessage({from:"system", text:"❌ Erreur d'envoi", ttl:5});
+    }
   }
 
   document.getElementById("send").addEventListener("click", send);
