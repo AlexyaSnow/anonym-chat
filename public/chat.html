@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anonym — Tiktok</title>
+<style>
+  body{margin:0;background:#020617;color:#e5e7eb;font-family:system-ui,Segoe UI,Arial;display:flex;flex-direction:column;height:100vh}
+  header{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-size:12px}
+  #chat{flex:1;overflow:auto;padding:12px}
+  .msg{margin:0 0 8px 0;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06);max-width:780px}
+  .me{outline:1px solid rgba(56,189,248,.35)}
+  .meta{opacity:.75;font-size:12px;margin-bottom:4px}
+  footer{padding:10px;border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px}
+  input,button{border:none;outline:none;border-radius:10px;padding:10px}
+  input{flex:1;background:rgba(255,255,255,.06);color:#e5e7eb}
+  button{background:#38bdf8;color:#0b1220;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  canvas{background:#fff;border-radius:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div style="font-weight:800">Anonym</div>
+    <div class="pill">Salle: <b>Tiktok</b></div>
+    <div class="pill">User: <b id="u"></b></div>
+  </div>
+
+  <div style="display:flex;gap:8px;align-items:center">
+    <div class="pill">TTL: <b id="ttlLabel">30</b>s</div>
+    <input id="ttl" value="30" style="width:80px" />
+    <button id="qrBtn" type="button">QR</button>
+  </div>
+</header>
+
+<div style="padding:10px 12px;display:none;gap:10px;align-items:center" id="qrWrap">
+  <canvas id="qr" width="220" height="220"></canvas>
+  <div style="opacity:.8;font-size:13px;line-height:1.35">
+    Scan le QR → entrée directe dans <b>Tiktok</b><br/>
+    (Username aléatoire à chaque visite.)
+  </div>
+</div>
+
+<div id="chat"></div>
+
+<footer>
+  <input id="msg" placeholder="Écris… (Entrée pour envoyer)" autocomplete="off" />
+  <button id="send" disabled>Envoyer</button>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+  const ROOM_NAME = "Tiktok";
+  const APP_NAME  = "Anonym";
+  const ROOM_SECRET = "anonym::tiktok::roomkey::v1";
+
+  const username = "user-" + Math.random().toString(36).slice(2, 8);
+  document.getElementById("u").textContent = username;
+
+  const chat = document.getElementById("chat");
+
+  // ✅ WS correct en HTTPS (trycloudflare) + chemin dédié
+  const wsProto = (location.protocol === "https:") ? "wss" : "ws";
+  const ws = new WebSocket(`${wsProto}://${location.host}/ws`);
+
+  let cryptoKey = null;
+
+  function addMessage({from, text, mine=false, ttl=30}) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg" + (mine ? " me" : "");
+    wrap.innerHTML = `
+      <div class="meta"><b>${escapeHtml(from)}</b> · ${new Date().toLocaleTimeString()}</div>
+      <div>${escapeHtml(text)}</div>
+    `;
+    chat.appendChild(wrap);
+    chat.scrollTop = chat.scrollHeight;
+    setTimeout(() => wrap.remove(), ttl * 1000);
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  async function deriveKey(pass){
+    const enc = new TextEncoder();
+    const base = await crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name:"PBKDF2", salt: enc.encode(APP_NAME), iterations: 100000, hash:"SHA-256" },
+      base,
+      { name:"AES-GCM", length: 256 },
+      false,
+      ["encrypt","decrypt"]
+    );
+  }
+
+  async function encryptObj(obj){
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const bytes = new TextEncoder().encode(JSON.stringify(obj));
+    const cipher = await crypto.subtle.encrypt({name:"AES-GCM", iv}, cryptoKey, bytes);
+    return { iv:[...iv], data:[...new Uint8Array(cipher)] };
+  }
+
+  async function decryptObj(payload){
+    const iv = new Uint8Array(payload.iv);
+    const data = new Uint8Array(payload.data);
+    const plain = await crypto.subtle.decrypt({name:"AES-GCM", iv}, cryptoKey, data);
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  async function boot(){
+    cryptoKey = await deriveKey(ROOM_SECRET);
+    document.getElementById("send").disabled = false;
+    makeQR();
+  }
+
+  function makeQR(){
+    const url = `${location.origin}/chat.html`;
+    QRCode.toCanvas(document.getElementById("qr"), url, { width: 220 });
+  }
+
+  document.getElementById("qrBtn").addEventListener("click", () => {
+    const wrap = document.getElementById("qrWrap");
+    wrap.style.display = (wrap.style.display === "none" ? "flex" : "none");
+  });
+
+  const ttlInput = document.getElementById("ttl");
+  const ttlLabel = document.getElementById("ttlLabel");
+  ttlInput.addEventListener("input", () => {
+    const v = parseInt(ttlInput.value, 10);
+    ttlLabel.textContent = (Number.isFinite(v) && v > 0) ? v : 30;
+  });
+
+  ws.onopen = () => addMessage({from:"system", text:"WebSocket OK.", ttl:5});
+  ws.onerror = () => addMessage({from:"system", text:"WebSocket erreur.", ttl:10});
+  ws.onclose = () => addMessage({from:"system", text:"WebSocket fermé.", ttl:10});
+
+  ws.onmessage = async (e) => {
+    if(!cryptoKey) return;
+    let pkt;
+    try { pkt = JSON.parse(e.data); } catch { return; }
+    if (pkt.room !== ROOM_NAME) return;
+
+    try {
+      const data = await decryptObj(pkt.payload);
+      addMessage({from: data.from, text: data.text, mine: (data.from === username), ttl: pkt.ttl || 30});
+    } catch {}
+  };
+
+  async function send(){
+    if(!cryptoKey) return;
+    const input = document.getElementById("msg");
+    const text = input.value.trim();
+    if(!text) return;
+
+    const ttl = Math.max(1, parseInt(ttlInput.value, 10) || 30);
+    const payload = await encryptObj({ from: username, text });
+    ws.send(JSON.stringify({ room: ROOM_NAME, payload, ttl }));
+    input.value = "";
+  }
+
+  document.getElementById("send").addEventListener("click", send);
+  document.getElementById("msg").addEventListener("keydown", (e) => {
+    if(e.key === "Enter") send();
+  });
+
+  boot();
+</script>
+</body>
+</html>
